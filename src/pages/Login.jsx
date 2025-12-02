@@ -1,5 +1,7 @@
-import { useFileHandler, useInputValidation } from "6pp";
-import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
+import React, { useState } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
 import {
   Avatar,
   Button,
@@ -10,15 +12,15 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import axios from "axios";
-import React, { useState } from "react";
-import toast from "react-hot-toast";
-import { useDispatch } from "react-redux";
+import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
+
+import { useFileHandler, useInputValidation } from "6pp";
 import { VisuallyHiddenInput } from "../components/styles/StyledComponents";
-import { bgGradient } from "../constants/color";
 import { server } from "../constants/config";
 import { userExists } from "../redux/reducers/auth";
 import { usernameValidator } from "../utils/validators";
+
+import bgImage from "../assets/login.jpg";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -30,6 +32,9 @@ const Login = () => {
   const bio = useInputValidation("");
   const username = useInputValidation("", usernameValidator);
   const password = useInputValidation("");
+  const confirmPassword = useInputValidation("", (val) =>
+    val !== password.value ? "Passwords do not match" : ""
+  );
 
   const avatar = useFileHandler("single");
 
@@ -76,6 +81,12 @@ const Login = () => {
     const toastId = toast.loading("Signing Up...");
     setIsLoading(true);
 
+    if (confirmPassword.value !== password.value) {
+      toast.error("Passwords do not match", { id: toastId });
+      setIsLoading(false);
+      return;
+    }
+
     const formData = new FormData();
     formData.append("avatar", avatar.file);
     formData.append("name", name.value);
@@ -113,28 +124,41 @@ const Login = () => {
   return (
     <div
       style={{
-        backgroundImage: bgGradient,
+        backgroundImage: `url("${bgImage}")`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
       }}
     >
       <Container
         component={"main"}
         maxWidth="xs"
         sx={{
-          height: "100vh",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
         }}
       >
         <Paper
-          elevation={3}
+          elevation={0}
           sx={{
             padding: 4,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            backdropFilter: "blur(3px)",
+            backgroundColor: "rgba(255, 255, 255, 0.35)",
+            borderRadius: 2,
+            width: "100%",
+            boxShadow: "0 0 20px rgba(0,0,0,0.15)",
           }}
         >
+
           {isLogin ? (
             <>
               <Typography variant="h5">Login</Typography>
@@ -294,6 +318,23 @@ const Login = () => {
                   onChange={password.changeHandler}
                 />
 
+                <TextField
+                  required
+                  fullWidth
+                  label="Confirm Password"
+                  type="password"
+                  margin="normal"
+                  variant="outlined"
+                  value={confirmPassword.value}
+                  onChange={confirmPassword.changeHandler}
+                />
+
+                {confirmPassword.error && (
+                  <Typography color="error" variant="caption">
+                    {confirmPassword.error}
+                  </Typography>
+                )}
+
                 <Button
                   sx={{
                     marginTop: "1rem",
@@ -329,3 +370,4 @@ const Login = () => {
 };
 
 export default Login;
+
