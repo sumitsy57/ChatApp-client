@@ -11,6 +11,8 @@ import {
   Stack,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
 
@@ -20,11 +22,17 @@ import { server } from "../constants/config";
 import { userExists } from "../redux/reducers/auth";
 import { usernameValidator } from "../utils/validators";
 
+// desktop/tablet image
 import bgImage from "../assets/login.jpg";
+// mobile-specific image (placed at ../assets/login3.jpg)
+import mobileBg from "../assets/login3.jpg";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const toggleLogin = () => setIsLogin((prev) => !prev);
 
@@ -121,10 +129,13 @@ const Login = () => {
     }
   };
 
+  // choose background depending on breakpoint
+  const selectedBackground = isMobile ? mobileBg : bgImage;
+
   return (
     <div
       style={{
-        backgroundImage: `url("${bgImage}")`,
+        backgroundImage: `url("${selectedBackground}")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -158,7 +169,6 @@ const Login = () => {
             boxShadow: "0 0 20px rgba(0,0,0,0.15)",
           }}
         >
-
           {isLogin ? (
             <>
               <Typography variant="h5">Login</Typography>
@@ -370,4 +380,3 @@ const Login = () => {
 };
 
 export default Login;
-
