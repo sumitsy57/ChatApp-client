@@ -23,7 +23,7 @@ const MessagesManagement = lazy(() =>
   import("./pages/admin/MessageManagement")
 );
 
-// 🔧 set axios defaults once, before component
+// set axios defaults once
 axios.defaults.baseURL = server;
 axios.defaults.withCredentials = true;
 
@@ -34,7 +34,7 @@ const App = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // baseURL is already set, so just use relative path
+        // baseURL already set, so just use relative path
         const { data } = await axios.get("/api/v1/user/me");
         dispatch(userExists(data.user));
       } catch (error) {

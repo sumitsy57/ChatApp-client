@@ -18,13 +18,12 @@ import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
 
 import { useFileHandler, useInputValidation } from "6pp";
 import { VisuallyHiddenInput } from "../components/styles/StyledComponents";
-import { server } from "../constants/config";
 import { userExists } from "../redux/reducers/auth";
 import { usernameValidator } from "../utils/validators";
 
 // desktop/tablet image
 import bgImage from "../assets/login.jpg";
-// mobile-specific image (placed at ../assets/login3.jpg)
+// mobile-specific image
 import mobileBg from "../assets/login3.jpg";
 
 const Login = () => {
@@ -48,41 +47,38 @@ const Login = () => {
 
   const dispatch = useDispatch();
 
+  // ---------- LOGIN ----------
   const handleLogin = async (e) => {
     e.preventDefault();
 
     const toastId = toast.loading("Logging In...");
-
     setIsLoading(true);
-    const config = {
-      withCredentials: true,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
 
     try {
-      const { data } = await axios.post(
-        (`${server}/api/v1/user/login`, payload, { withCredentials: true }),
-        {
-          username: username.value,
-          password: password.value,
-        },
-        config
-      );
+      // baseURL & withCredentials are already set globally in App.jsx
+      const { data } = await axios.post("/api/v1/user/login", {
+        username: username.value,
+        password: password.value,
+      });
+
       dispatch(userExists(data.user));
-      toast.success(data.message, {
+
+      toast.success(data.message || "Logged in successfully", {
         id: toastId,
       });
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Something Went Wrong", {
-        id: toastId,
-      });
+      console.error("Login error:", error.response?.data || error.message);
+
+      toast.error(
+        error?.response?.data?.message || "Something Went Wrong",
+        { id: toastId }
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ---------- SIGN UP ----------
   const handleSignUp = async (e) => {
     e.preventDefault();
 
@@ -103,27 +99,27 @@ const Login = () => {
     formData.append("password", password.value);
 
     const config = {
-      withCredentials: true,
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
+      // withCredentials is already true globally, but leaving this is harmless
+      withCredentials: true,
     };
 
     try {
-      const { data } = await axios.post(
-        `${server}/api/v1/user/new`,
-        formData,
-        config
-      );
+      const { data } = await axios.post("/api/v1/user/new", formData, config);
 
       dispatch(userExists(data.user));
-      toast.success(data.message, {
+      toast.success(data.message || "Account created", {
         id: toastId,
       });
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Something Went Wrong", {
-        id: toastId,
-      });
+      console.error("Signup error:", error.response?.data || error.message);
+
+      toast.error(
+        error?.response?.data?.message || "Something Went Wrong",
+        { id: toastId }
+      );
     } finally {
       setIsLoading(false);
     }
@@ -201,9 +197,7 @@ const Login = () => {
                 />
 
                 <Button
-                  sx={{
-                    marginTop: "1rem",
-                  }}
+                  sx={{ marginTop: "1rem" }}
                   variant="contained"
                   color="primary"
                   type="submit"
@@ -301,6 +295,7 @@ const Login = () => {
                   value={bio.value}
                   onChange={bio.changeHandler}
                 />
+
                 <TextField
                   required
                   fullWidth
@@ -346,9 +341,7 @@ const Login = () => {
                 )}
 
                 <Button
-                  sx={{
-                    marginTop: "1rem",
-                  }}
+                  sx={{ marginTop: "1rem" }}
                   variant="contained"
                   color="primary"
                   type="submit"
