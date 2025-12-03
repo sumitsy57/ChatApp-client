@@ -1,14 +1,21 @@
 // socket.js
 import { createContext, useContext } from "react";
-import { io } from "socket.io-client";   // <-- named import
+import { io } from "socket.io-client";
 import { server } from "./constants/config";
 
 const SocketContext = createContext(null);
 
-// create ONE socket instance for the whole app
-const socket = io(server, {
-  withCredentials: true,           // send cookies for auth
-});
+const createSocket = () => {
+  const token = localStorage.getItem("chattu-token");
+  return io(server, {
+    withCredentials: true,
+    auth: {
+      token,   // 👈 sent to socketAuthenticator
+    },
+  });
+};
+
+const socket = createSocket();
 
 export const SocketProvider = ({ children }) => {
   return (

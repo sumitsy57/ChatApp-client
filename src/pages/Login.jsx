@@ -61,7 +61,13 @@ const Login = () => {
         password: password.value,
       });
 
+      // 👇 save token for headers / socket
+      if (data.token) {
+        localStorage.setItem("chattu-token", data.token);
+      }
+
       dispatch(userExists(data.user));
+
 
       toast.success(data.message || "Logged in successfully", {
         id: toastId,
