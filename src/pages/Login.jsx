@@ -1,3 +1,4 @@
+// pages/Login.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -21,9 +22,7 @@ import { VisuallyHiddenInput } from "../components/styles/StyledComponents";
 import { userExists } from "../redux/reducers/auth";
 import { usernameValidator } from "../utils/validators";
 
-// desktop/tablet image
 import bgImage from "../assets/login.jpg";
-// mobile-specific image
 import mobileBg from "../assets/login3.jpg";
 
 const Login = () => {
@@ -44,10 +43,9 @@ const Login = () => {
   );
 
   const avatar = useFileHandler("single");
-
   const dispatch = useDispatch();
 
-  // ---------- LOGIN ----------
+  // LOGIN
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -55,26 +53,28 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // baseURL & withCredentials are already set globally in App.jsx
-      const { data } = await axios.post("/api/v1/user/login", {
-        username: username.value,
-        password: password.value,
-      });
+      const { data } = await axios.post(
+        "/api/v1/user/login",
+        {
+          username: username.value,
+          password: password.value,
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
 
-      // 👇 save token for headers / socket
       if (data.token) {
         localStorage.setItem("chattu-token", data.token);
       }
 
       dispatch(userExists(data.user));
-
-
       toast.success(data.message || "Logged in successfully", {
         id: toastId,
       });
     } catch (error) {
       console.error("Login error:", error.response?.data || error.message);
-
       toast.error(
         error?.response?.data?.message || "Something Went Wrong",
         { id: toastId }
@@ -84,7 +84,7 @@ const Login = () => {
     }
   };
 
-  // ---------- SIGN UP ----------
+  // SIGNUP
   const handleSignUp = async (e) => {
     e.preventDefault();
 
@@ -104,16 +104,15 @@ const Login = () => {
     formData.append("username", username.value);
     formData.append("password", password.value);
 
-    const config = {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-      // withCredentials is already true globally, but leaving this is harmless
-      withCredentials: true,
-    };
-
     try {
-      const { data } = await axios.post("/api/v1/user/new", formData, config);
+      const { data } = await axios.post("/api/v1/user/new", formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (data.token) {
+        localStorage.setItem("chattu-token", data.token);
+      }
 
       dispatch(userExists(data.user));
       toast.success(data.message || "Account created", {
@@ -121,7 +120,6 @@ const Login = () => {
       });
     } catch (error) {
       console.error("Signup error:", error.response?.data || error.message);
-
       toast.error(
         error?.response?.data?.message || "Something Went Wrong",
         { id: toastId }
@@ -131,7 +129,6 @@ const Login = () => {
     }
   };
 
-  // choose background depending on breakpoint
   const selectedBackground = isMobile ? mobileBg : bgImage;
 
   return (
@@ -175,10 +172,7 @@ const Login = () => {
             <>
               <Typography variant="h5">Login</Typography>
               <form
-                style={{
-                  width: "100%",
-                  marginTop: "1rem",
-                }}
+                style={{ width: "100%", marginTop: "1rem" }}
                 onSubmit={handleLogin}
               >
                 <TextField
@@ -231,10 +225,7 @@ const Login = () => {
             <>
               <Typography variant="h5">Sign Up</Typography>
               <form
-                style={{
-                  width: "100%",
-                  marginTop: "1rem",
-                }}
+                style={{ width: "100%", marginTop: "1rem" }}
                 onSubmit={handleSignUp}
               >
                 <Stack position={"relative"} width={"10rem"} margin={"auto"}>
@@ -246,7 +237,6 @@ const Login = () => {
                     }}
                     src={avatar.preview}
                   />
-
                   <IconButton
                     sx={{
                       position: "absolute",
@@ -254,9 +244,7 @@ const Login = () => {
                       right: "0",
                       color: "white",
                       bgcolor: "rgba(0,0,0,0.5)",
-                      ":hover": {
-                        bgcolor: "rgba(0,0,0,0.7)",
-                      },
+                      ":hover": { bgcolor: "rgba(0,0,0,0.7)" },
                     }}
                     component="label"
                   >

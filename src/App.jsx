@@ -1,3 +1,4 @@
+// App.jsx
 import React, { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectRoute from "./components/auth/ProtectRoute";
@@ -23,10 +24,11 @@ const MessagesManagement = lazy(() =>
   import("./pages/admin/MessageManagement")
 );
 
-// set axios defaults once
+// axios global config
 axios.defaults.baseURL = server;
 axios.defaults.withCredentials = true;
 
+// attach token from localStorage to every request
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem("chattu-token");
   if (token) {
@@ -35,7 +37,6 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-
 const App = () => {
   const { user, loader } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -43,14 +44,11 @@ const App = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // baseURL already set, so just use relative path
         const { data } = await axios.get("/api/v1/user/me");
         dispatch(userExists(data.user));
       } catch (error) {
         const status = error?.response?.status;
-
         if (status === 401) {
-          // Not logged in → normal, just clear user
           dispatch(userNotExists());
         } else {
           console.error("Error loading /me:", error);
