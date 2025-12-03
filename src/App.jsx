@@ -23,25 +23,25 @@ const MessagesManagement = lazy(() =>
   import("./pages/admin/MessageManagement")
 );
 
+// 🔧 set axios defaults once, before component
+axios.defaults.baseURL = server;
+axios.defaults.withCredentials = true;
+
 const App = () => {
   const { user, loader } = useSelector((state) => state.auth);
-
   const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // if you set axios.defaults.baseURL = server:
+        // baseURL is already set, so just use relative path
         const { data } = await axios.get("/api/v1/user/me");
-        // if you didn't set baseURL, use:
-        // const { data } = await axios.get(`${server}/api/v1/user/me`);
-
         dispatch(userExists(data.user));
       } catch (error) {
         const status = error?.response?.status;
 
         if (status === 401) {
-          // 401 = not logged in. This is normal, just mark as guest.
+          // Not logged in → normal, just clear user
           dispatch(userNotExists());
         } else {
           console.error("Error loading /me:", error);
@@ -52,9 +52,6 @@ const App = () => {
 
     fetchUser();
   }, [dispatch]);
-
-  axios.defaults.baseURL = server;
-  axios.defaults.withCredentials = true;
 
   return loader ? (
     <LayoutLoader />
