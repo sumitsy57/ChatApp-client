@@ -1,20 +1,21 @@
-import { createContext, useMemo, useContext } from "react";
-import io from "socket.io-client";
+// socket.js
+import { createContext, useContext } from "react";
+import { io } from "socket.io-client";   // <-- named import
 import { server } from "./constants/config";
 
-const SocketContext = createContext();
+const SocketContext = createContext(null);
 
-const getSocket = () => useContext(SocketContext);
+// create ONE socket instance for the whole app
+const socket = io(server, {
+  withCredentials: true,           // send cookies for auth
+});
 
-const SocketProvider = ({ children }) => {
-  const socket = io(server, {
-    withCredentials: true,
-  });
-
-
+export const SocketProvider = ({ children }) => {
   return (
-    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
+    <SocketContext.Provider value={socket}>
+      {children}
+    </SocketContext.Provider>
   );
 };
 
-export { SocketProvider, getSocket };
+export const getSocket = () => useContext(SocketContext);
