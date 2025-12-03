@@ -1,29 +1,20 @@
-// socket.js
-import { createContext, useContext, useState, useEffect } from "react";
+// src/socket.js
+import { createContext, useContext } from "react";
 import { io } from "socket.io-client";
 import { server } from "./constants/config";
 
 const SocketContext = createContext(null);
 
+// create socket once, synchronously
+const token = localStorage.getItem("chattu-token") || null;
+
+const socket = io(server, {
+  withCredentials: true,
+  transports: ["websocket"],
+  auth: { token },
+});
+
 export const SocketProvider = ({ children }) => {
-  const [socket, setSocket] = useState(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem("chattu-token") || null;
-
-    const s = io(server, {
-      withCredentials: true,
-      transports: ["websocket"],
-      auth: { token },
-    });
-
-    setSocket(s);
-
-    return () => {
-      s.disconnect();
-    };
-  }, []);
-
   return (
     <SocketContext.Provider value={socket}>
       {children}
