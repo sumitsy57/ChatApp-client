@@ -29,11 +29,32 @@ const App = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    axios
-      .get(`${server}/api/v1/user/me`, { withCredentials: true })
-      .then(({ data }) => dispatch(userExists(data.user)))
-      .catch((err) => dispatch(userNotExists()));
+    const fetchUser = async () => {
+      try {
+        // if you set axios.defaults.baseURL = server:
+        const { data } = await axios.get("/api/v1/user/me");
+        // if you didn't set baseURL, use:
+        // const { data } = await axios.get(`${server}/api/v1/user/me`);
+
+        dispatch(userExists(data.user));
+      } catch (error) {
+        const status = error?.response?.status;
+
+        if (status === 401) {
+          // 401 = not logged in. This is normal, just mark as guest.
+          dispatch(userNotExists());
+        } else {
+          console.error("Error loading /me:", error);
+          dispatch(userNotExists());
+        }
+      }
+    };
+
+    fetchUser();
   }, [dispatch]);
+
+  axios.defaults.baseURL = server;
+  axios.defaults.withCredentials = true;
 
   return loader ? (
     <LayoutLoader />
