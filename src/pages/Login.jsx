@@ -1,99 +1,82 @@
-// pages/Login.jsx
 import React, { useState } from "react";
-import axios from "axios";
-import toast from "react-hot-toast";
-import { useDispatch } from "react-redux";
+import { useInputValidation } from "6pp";
 import {
-  Avatar,
   Button,
   Container,
-  IconButton,
   Paper,
-  Stack,
   TextField,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
-import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
-
-import { useFileHandler, useInputValidation } from "6pp";
-import { VisuallyHiddenInput } from "../components/styles/StyledComponents";
+import { useDispatch } from "react-redux";
+import axios from "axios";
+import toast from "react-hot-toast";
 import { userExists } from "../redux/reducers/auth";
-import { usernameValidator } from "../utils/validators";
-
-import bgImage from "../assets/login.jpg";
-import mobileBg from "../assets/login3.jpg";
+import { Link } from "react-router-dom";
 
 const Login = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-  const toggleLogin = () => setIsLogin((prev) => !prev);
-
-  const name = useInputValidation("");
-  const bio = useInputValidation("");
-  const username = useInputValidation("", usernameValidator);
-  const password = useInputValidation("");
-  const confirmPassword = useInputValidation("", (val) =>
-    val !== password.value ? "Passwords do not match" : ""
-  );
-
-  const avatar = useFileHandler("single");
   const dispatch = useDispatch();
 
-  // LOGIN
+  // Login inputs
+  const username = useInputValidation("");
+  const password = useInputValidation("");
+
+  // Signup inputs
+  const name = useInputValidation("");
+  const bio = useInputValidation("");
+  const newUsername = useInputValidation("");
+  const newPassword = useInputValidation("");
+  const confirmPassword = useInputValidation("");
+
+  const [avatar, setAvatar] = useState({
+    file: null,
+    preview: "",
+  });
+
+  const [isLoginPage, setIsLoginPage] = useState(true);
+
+  // Avatar Handler
+  const handleAvatar = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setAvatar({
+      file,
+      preview: URL.createObjectURL(file),
+    });
+  };
+
+  /* ---------------------------- LOGIN HANDLER ---------------------------- */
   const handleLogin = async (e) => {
     e.preventDefault();
-
-    const toastId = toast.loading("Logging In...");
-    setIsLoading(true);
+    const toastId = toast.loading("Logging in...");
 
     try {
-      const { data } = await axios.post(
-        "/api/v1/user/login",
-        {
-          username: username.value,
-          password: password.value,
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
+      const { data } = await axios.post("/api/v1/user/login", {
+        username: username.value,
+        password: password.value,
+      });
 
       if (data.token) {
         localStorage.setItem("chattu-token", data.token);
       }
 
       dispatch(userExists(data.user));
-      toast.success(data.message || "Logged in successfully", {
+
+      toast.success("Login Successful", { id: toastId });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Login Failed", {
         id: toastId,
       });
-    } catch (error) {
-      console.error("Login error:", error.response?.data || error.message);
-      toast.error(
-        error?.response?.data?.message || "Something Went Wrong",
-        { id: toastId }
-      );
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  // SIGNUP
-  const handleSignUp = async (e) => {
+  /* ---------------------------- SIGNUP HANDLER --------------------------- */
+  const handleSignup = async (e) => {
     e.preventDefault();
+    const toastId = toast.loading("Creating Account...");
 
-    const toastId = toast.loading("Signing Up...");
-    setIsLoading(true);
-
-    if (confirmPassword.value !== password.value) {
+    if (newPassword.value !== confirmPassword.value) {
       toast.error("Passwords do not match", { id: toastId });
-      setIsLoading(false);
       return;
     }
 
@@ -101,264 +84,198 @@ const Login = () => {
     formData.append("avatar", avatar.file);
     formData.append("name", name.value);
     formData.append("bio", bio.value);
-    formData.append("username", username.value);
-    formData.append("password", password.value);
+    formData.append("username", newUsername.value);
+    formData.append("password", newPassword.value);
 
     try {
-      const { data } = await axios.post("/api/v1/user/new", formData, {
-        withCredentials: true,
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const { data } = await axios.post("/api/v1/user/new", formData);
 
       if (data.token) {
         localStorage.setItem("chattu-token", data.token);
       }
 
       dispatch(userExists(data.user));
-      toast.success(data.message || "Account created", {
+
+      toast.success("Account Created Successfully", { id: toastId });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Signup Failed", {
         id: toastId,
       });
-    } catch (error) {
-      console.error("Signup error:", error.response?.data || error.message);
-      toast.error(
-        error?.response?.data?.message || "Something Went Wrong",
-        { id: toastId }
-      );
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const selectedBackground = isMobile ? mobileBg : bgImage;
+  /* ------------------------------- UI RETURN ------------------------------ */
 
   return (
     <div
       style={{
-        backgroundImage: `url("${selectedBackground}")`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
         minHeight: "100vh",
-        width: "100%",
+        background: "#f5f5f5",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+        padding: "20px",
       }}
     >
-      <Container
-        component={"main"}
-        maxWidth="xs"
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+      <Container maxWidth="xs">
         <Paper
-          elevation={0}
+          elevation={6}
           sx={{
-            padding: 4,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            backdropFilter: "blur(3px)",
-            backgroundColor: "rgba(255, 255, 255, 0.35)",
-            borderRadius: 2,
-            width: "100%",
-            boxShadow: "0 0 20px rgba(0,0,0,0.15)",
+            padding: "2rem",
+            borderRadius: "1rem",
           }}
         >
-          {isLogin ? (
-            <>
-              <Typography variant="h5">Login</Typography>
-              <form
-                style={{ width: "100%", marginTop: "1rem" }}
-                onSubmit={handleLogin}
+          <Typography
+            variant="h4"
+            textAlign="center"
+            fontWeight="bold"
+            mb={3}
+          >
+            {isLoginPage ? "Login" : "Sign Up"}
+          </Typography>
+
+          {isLoginPage ? (
+            /* --------------------------- LOGIN FORM --------------------------- */
+            <form onSubmit={handleLogin}>
+              <TextField
+                label="Username"
+                fullWidth
+                margin="normal"
+                value={username.value}
+                onChange={username.changeHandler}
+                required
+              />
+
+              <TextField
+                label="Password"
+                fullWidth
+                margin="normal"
+                type="password"
+                value={password.value}
+                onChange={password.changeHandler}
+                required
+              />
+
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                type="submit"
+                sx={{ mt: 2 }}
               >
-                <TextField
-                  required
-                  fullWidth
-                  label="Username"
-                  margin="normal"
-                  variant="outlined"
-                  value={username.value}
-                  onChange={username.changeHandler}
-                />
+                LOGIN
+              </Button>
 
-                <TextField
-                  required
-                  fullWidth
-                  label="Password"
-                  type="password"
-                  margin="normal"
-                  variant="outlined"
-                  value={password.value}
-                  onChange={password.changeHandler}
-                />
-
-                <Button
-                  sx={{ marginTop: "1rem" }}
-                  variant="contained"
-                  color="primary"
-                  type="submit"
-                  fullWidth
-                  disabled={isLoading}
-                >
-                  Login
-                </Button>
-
-                <Typography textAlign={"center"} m={"1rem"}>
-                  OR
-                </Typography>
-
-                <Button
-                  disabled={isLoading}
-                  fullWidth
-                  variant="text"
-                  onClick={toggleLogin}
+              <Typography textAlign="center" mt={2}>
+                Don't have an account?{" "}
+                <span
+                  style={{ color: "blue", cursor: "pointer" }}
+                  onClick={() => setIsLoginPage(false)}
                 >
                   Sign Up Instead
-                </Button>
-              </form>
-            </>
+                </span>
+              </Typography>
+            </form>
           ) : (
-            <>
-              <Typography variant="h5">Sign Up</Typography>
-              <form
-                style={{ width: "100%", marginTop: "1rem" }}
-                onSubmit={handleSignUp}
+            /* --------------------------- SIGNUP FORM -------------------------- */
+            <form onSubmit={handleSignup}>
+              <label
+                style={{
+                  fontWeight: "bold",
+                  marginTop: "10px",
+                  display: "block",
+                }}
               >
-                <Stack position={"relative"} width={"10rem"} margin={"auto"}>
-                  <Avatar
-                    sx={{
-                      width: "10rem",
-                      height: "10rem",
-                      objectFit: "contain",
-                    }}
-                    src={avatar.preview}
-                  />
-                  <IconButton
-                    sx={{
-                      position: "absolute",
-                      bottom: "0",
-                      right: "0",
-                      color: "white",
-                      bgcolor: "rgba(0,0,0,0.5)",
-                      ":hover": { bgcolor: "rgba(0,0,0,0.7)" },
-                    }}
-                    component="label"
-                  >
-                    <>
-                      <CameraAltIcon />
-                      <VisuallyHiddenInput
-                        type="file"
-                        onChange={avatar.changeHandler}
-                      />
-                    </>
-                  </IconButton>
-                </Stack>
+                Profile Picture
+              </label>
 
-                {avatar.error && (
-                  <Typography
-                    m={"1rem auto"}
-                    width={"fit-content"}
-                    display={"block"}
-                    color="error"
-                    variant="caption"
-                  >
-                    {avatar.error}
-                  </Typography>
-                )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatar}
+                required
+              />
 
-                <TextField
-                  required
-                  fullWidth
-                  label="Name"
-                  margin="normal"
-                  variant="outlined"
-                  value={name.value}
-                  onChange={name.changeHandler}
+              {avatar.preview && (
+                <img
+                  src={avatar.preview}
+                  alt="Avatar Preview"
+                  style={{
+                    width: "80px",
+                    height: "80px",
+                    borderRadius: "50%",
+                    marginTop: "10px",
+                  }}
                 />
+              )}
 
-                <TextField
-                  required
-                  fullWidth
-                  label="Bio"
-                  margin="normal"
-                  variant="outlined"
-                  value={bio.value}
-                  onChange={bio.changeHandler}
-                />
+              <TextField
+                label="Full Name"
+                fullWidth
+                margin="normal"
+                value={name.value}
+                onChange={name.changeHandler}
+                required
+              />
 
-                <TextField
-                  required
-                  fullWidth
-                  label="Username"
-                  margin="normal"
-                  variant="outlined"
-                  value={username.value}
-                  onChange={username.changeHandler}
-                />
+              <TextField
+                label="Bio"
+                fullWidth
+                margin="normal"
+                value={bio.value}
+                onChange={bio.changeHandler}
+                required
+              />
 
-                {username.error && (
-                  <Typography color="error" variant="caption">
-                    {username.error}
-                  </Typography>
-                )}
+              <TextField
+                label="Username"
+                fullWidth
+                margin="normal"
+                value={newUsername.value}
+                onChange={newUsername.changeHandler}
+                required
+              />
 
-                <TextField
-                  required
-                  fullWidth
-                  label="Password"
-                  type="password"
-                  margin="normal"
-                  variant="outlined"
-                  value={password.value}
-                  onChange={password.changeHandler}
-                />
+              <TextField
+                label="Password"
+                fullWidth
+                margin="normal"
+                type="password"
+                value={newPassword.value}
+                onChange={newPassword.changeHandler}
+                required
+              />
 
-                <TextField
-                  required
-                  fullWidth
-                  label="Confirm Password"
-                  type="password"
-                  margin="normal"
-                  variant="outlined"
-                  value={confirmPassword.value}
-                  onChange={confirmPassword.changeHandler}
-                />
+              <TextField
+                label="Confirm Password"
+                fullWidth
+                margin="normal"
+                type="password"
+                value={confirmPassword.value}
+                onChange={confirmPassword.changeHandler}
+                required
+              />
 
-                {confirmPassword.error && (
-                  <Typography color="error" variant="caption">
-                    {confirmPassword.error}
-                  </Typography>
-                )}
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                type="submit"
+                sx={{ mt: 2 }}
+              >
+                SIGN UP
+              </Button>
 
-                <Button
-                  sx={{ marginTop: "1rem" }}
-                  variant="contained"
-                  color="primary"
-                  type="submit"
-                  fullWidth
-                  disabled={isLoading}
-                >
-                  Sign Up
-                </Button>
-
-                <Typography textAlign={"center"} m={"1rem"}>
-                  OR
-                </Typography>
-
-                <Button
-                  disabled={isLoading}
-                  fullWidth
-                  variant="text"
-                  onClick={toggleLogin}
+              <Typography textAlign="center" mt={2}>
+                Already have an account?{" "}
+                <span
+                  style={{ color: "blue", cursor: "pointer" }}
+                  onClick={() => setIsLoginPage(true)}
                 >
                   Login Instead
-                </Button>
-              </form>
-            </>
+                </span>
+              </Typography>
+            </form>
           )}
         </Paper>
       </Container>

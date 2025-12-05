@@ -1,13 +1,14 @@
-// App.jsx
+// client/src/App.jsx
 import React, { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { Toaster } from "react-hot-toast";
+
 import ProtectRoute from "./components/auth/ProtectRoute";
 import { LayoutLoader } from "./components/layout/Loaders";
-import axios from "axios";
 import { server } from "./constants/config";
-import { useDispatch, useSelector } from "react-redux";
 import { userExists, userNotExists } from "./redux/reducers/auth";
-import { Toaster } from "react-hot-toast";
 import { SocketProvider } from "./socket";
 
 const Home = lazy(() => import("./pages/Home"));
@@ -27,13 +28,9 @@ const MessagesManagement = lazy(() =>
 // axios global config
 axios.defaults.baseURL = server;
 axios.defaults.withCredentials = true;
-
-// attach token from localStorage to every request
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem("chattu-token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -47,16 +44,14 @@ const App = () => {
         const { data } = await axios.get("/api/v1/user/me");
         dispatch(userExists(data.user));
       } catch (error) {
-        const status = error?.response?.status;
-        if (status === 401) {
+        if (error?.response?.status === 401) {
           dispatch(userNotExists());
         } else {
-          console.error("Error loading /me:", error);
+          console.error("Error /me:", error);
           dispatch(userNotExists());
         }
       }
     };
-
     fetchUser();
   }, [dispatch]);
 
@@ -96,7 +91,6 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-
       <Toaster position="bottom-center" />
     </BrowserRouter>
   );
