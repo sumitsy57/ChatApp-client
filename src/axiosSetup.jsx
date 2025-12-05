@@ -2,11 +2,11 @@
 import axios from "axios";
 import { server } from "./constants/config";
 
-// base URL for all axios calls
+// base url + cookies
 axios.defaults.baseURL = server;
 axios.defaults.withCredentials = true;
 
-// attach token from localStorage to every request
+// attach JWT from localStorage to every request
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem("chattu-token");
   if (token) {
