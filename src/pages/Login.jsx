@@ -11,10 +11,11 @@ import {
   Stack,
   TextField,
   Typography,
+  InputAdornment,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
+import { CameraAlt as CameraAltIcon, Visibility, VisibilityOff } from "@mui/icons-material";
 
 import { useFileHandler, useInputValidation } from "6pp";
 import { VisuallyHiddenInput } from "../components/styles/StyledComponents";
@@ -32,6 +33,8 @@ const Login = () => {
 
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -48,6 +51,11 @@ const Login = () => {
   const avatar = useFileHandler("single");
 
   const toggleLogin = () => setIsLogin((prev) => !prev);
+
+  const handleClickShowPassword = () => setShowPassword((s) => !s);
+  const handleClickShowConfirmPassword = () =>
+    setShowConfirmPassword((s) => !s);
+  const handleMouseDownPassword = (e) => e.preventDefault();
 
   /* ---------------------------- LOGIN HANDLER ---------------------------- */
 
@@ -207,11 +215,25 @@ const Login = () => {
                   required
                   fullWidth
                   label="Password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   margin="normal"
                   variant="outlined"
                   value={password.value}
                   onChange={password.changeHandler}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
 
                 <Button
@@ -330,22 +352,50 @@ const Login = () => {
                   required
                   fullWidth
                   label="Password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   margin="normal"
                   variant="outlined"
                   value={password.value}
                   onChange={password.changeHandler}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
 
                 <TextField
                   required
                   fullWidth
                   label="Confirm Password"
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   margin="normal"
                   variant="outlined"
                   value={confirmPassword.value}
                   onChange={confirmPassword.changeHandler}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                          onClick={handleClickShowConfirmPassword}
+                          onMouseDown={handleMouseDownPassword}
+                          edge="end"
+                        >
+                          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
                 {confirmPassword.error && (
                   <Typography color="error" variant="caption">

@@ -12,7 +12,7 @@ import { useSelector } from "react-redux";
 import { grayColor } from "../constants/color";
 
 const Home = () => {
-  const { user } = useSelector((state) => state.auth); // change if your slice is different
+  const { user } = useSelector((state) => state.auth); 
   const [openProfile, setOpenProfile] = useState(false);
 
   const handleOpenProfile = () => setOpenProfile(true);
